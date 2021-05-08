@@ -8,33 +8,7 @@ import 'package:http/http.dart';
 class SubtitleGetter with ChangeNotifier {
   List subs = [];
 
-  void reset() {
-    subs = [];
-    notifyListeners();
-  }
-
-  Future<dynamic> getId(String title, String lang) async {
-    final newtitle = title.replaceAll(' ', '+');
-    Response resp = await get(Uri.parse(
-        'http://www.omdbapi.com/?t=$newtitle&type=movie&apikey=61b1b953'));
-    final movieData = jsonDecode(resp.body);
-    print(movieData['imdbID']);
-    if (movieData['Response'] == 'True') {
-      var id = movieData['imdbID'];
-      var subtitle = await getMovieSubs(id, lang);
-      subs = subtitle;
-      if (subs.isEmpty) {
-        return 'No Subtitles found!';
-      }
-
-      notifyListeners();
-    }
-    if (movieData['Response'] == 'False') {
-      return 'Movie Not Found';
-    }
-  }
-
-  Future getMovieSubs(String id, String lang) async {
+  Future getSubtitles(String id, String lang) async {
     List<dynamic> responseBody;
 
     HttpClient client = HttpClient();
@@ -52,7 +26,28 @@ class SubtitleGetter with ChangeNotifier {
     return responseBody;
   }
 
-  Future<dynamic> getSId(
+  Future<dynamic> getMovieSubs(String title, String lang) async {
+    final newtitle = title.replaceAll(' ', '+');
+    Response resp = await get(Uri.parse(
+        'http://www.omdbapi.com/?t=$newtitle&type=movie&apikey=61b1b953'));
+    final movieData = jsonDecode(resp.body);
+    print(movieData['imdbID']);
+    if (movieData['Response'] == 'True') {
+      var id = movieData['imdbID'];
+      var subtitle = await getSubtitles(id, lang);
+      subs = subtitle;
+      if (subs.isEmpty) {
+        return 'No Subtitles found!';
+      }
+
+      notifyListeners();
+    }
+    if (movieData['Response'] == 'False') {
+      return 'Movie Not Found';
+    }
+  }
+
+  Future<dynamic> getSeriesSubs(
       String title, String season, String episode, String lang) async {
     final newtitle = title.replaceAll(' ', '+');
     Response resp = await get(Uri.parse(
@@ -66,7 +61,7 @@ class SubtitleGetter with ChangeNotifier {
       final episodeData = jsonDecode(finalresp.body);
       if (episodeData['Response'] == 'True') {
         var episodeId = episodeData['imdbID'];
-        var subtitle = await getMovieSubs(episodeId, lang);
+        var subtitle = await getSubtitles(episodeId, lang);
         subs = subtitle;
         notifyListeners();
       } else if (episodeData['Response'] == 'False') {
