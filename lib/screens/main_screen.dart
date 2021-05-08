@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 
-import '../modals/imdb_nemagetter.dart';
+import '../modals/networking.dart';
 import '../widgets/subtitle_item_widget.dart';
 
 enum Languages { Arabic, English }
@@ -222,7 +222,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
                           if (movieMode) {
                             await Provider.of<SubtitleGetter>(context,
                                     listen: false)
-                                .getId(title, lang)
+                                .getMovieSubs(title, lang)
                                 .then((value) {
                               if (value != null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -232,7 +232,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
                           } else {
                             await Provider.of<SubtitleGetter>(context,
                                     listen: false)
-                                .getSId(title, season.toString(),
+                                .getSeriesSubs(title, season.toString(),
                                     episode.toString(), lang)
                                 .then((value) {
                               if (value != null) {
