@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import './screens/main_screen.dart';
-import './modals/imdb_nemagetter.dart';
+import 'modals/networking.dart';
 
 void main() async {
   runApp(MyApp());

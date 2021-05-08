@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../modals/downloader.dart';
 
 class SubtitleItem extends StatelessWidget {
@@ -22,7 +23,19 @@ class SubtitleItem extends StatelessWidget {
             }
             endD();
           },
-          child: Text(subtitleInfo['SubFileName']),
+          child: Row(
+            children: [
+              Expanded(flex: 6, child: Text(subtitleInfo['SubFileName'])),
+              SizedBox(
+                width: 10,
+              ),
+              Text('${(int.parse(subtitleInfo['SubSize']) / 1000).round()} KB'),
+              SizedBox(
+                width: 10,
+              ),
+              Icon(Icons.file_download)
+            ],
+          ),
         ),
         Divider()
       ]),
