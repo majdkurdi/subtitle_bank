@@ -29,7 +29,7 @@ class SubtitleGetter with ChangeNotifier {
   Future<dynamic> getMovieSubs(String title, String lang) async {
     final newtitle = title.replaceAll(' ', '+');
     Response resp = await get(Uri.parse(
-        'http://www.omdbapi.com/?t=$newtitle&type=movie&apikey=61b1b953'));
+        'https://www.omdbapi.com/?t=$newtitle&type=movie&apikey=61b1b953'));
     final movieData = jsonDecode(resp.body);
     print(movieData['imdbID']);
     if (movieData['Response'] == 'True') {
@@ -51,13 +51,13 @@ class SubtitleGetter with ChangeNotifier {
       String title, String season, String episode, String lang) async {
     final newtitle = title.replaceAll(' ', '+');
     Response resp = await get(Uri.parse(
-        'http://www.omdbapi.com/?t=$newtitle&type=series&apikey=61b1b953'));
+        'https://www.omdbapi.com/?t=$newtitle&type=series&apikey=61b1b953'));
     final seriesData = jsonDecode(resp.body);
     if (seriesData['Response'] == 'True') {
       var id = seriesData['imdbID'];
 
       Response finalresp = await get(Uri.parse(
-          'http://www.omdbapi.com/?i=$id&Season=$season&Episode=$episode&apikey=61b1b953'));
+          'https://www.omdbapi.com/?i=$id&Season=$season&Episode=$episode&apikey=61b1b953'));
       final episodeData = jsonDecode(finalresp.body);
       if (episodeData['Response'] == 'True') {
         var episodeId = episodeData['imdbID'];
