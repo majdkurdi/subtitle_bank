@@ -6,22 +6,27 @@ class SubtitleItem extends StatelessWidget {
   final Map subtitleInfo;
   final Function startD;
   final Function endD;
-  SubtitleItem(this.subtitleInfo, this.startD, this.endD);
+  final Function showSnackB;
+  SubtitleItem(this.subtitleInfo, this.startD, this.endD, this.showSnackB);
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         GestureDetector(
           onTap: () async {
+            bool done = false;
             startD();
+            Downloader downloader = Downloader();
             try {
-              Downloader downloader = Downloader();
               await downloader.downloadFile(
                   subtitleInfo['ZipDownloadLink'], subtitleInfo['SubFileName']);
+              done = true;
             } catch (e) {
-              print(e);
+              showSnackB('No Internet Connection');
+              done = false;
             }
-            endD();
+
+            endD(done);
           },
           child: Row(
             children: [

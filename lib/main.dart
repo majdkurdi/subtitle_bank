@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import './screens/main_screen.dart';
+import './screens/welcome_screen.dart';
 import 'modals/networking.dart';
 
 void main() async {
@@ -21,8 +22,9 @@ class MyApp extends StatelessWidget {
                 TextTheme(headline6: TextStyle(fontFamily: 'TitilliumWeb'))),
         routes: {
           '/': (context) => MoviesScreen(),
+          WelcomeScreen.routeName: (context) => WelcomeScreen()
         },
-        initialRoute: '/',
+        initialRoute: WelcomeScreen.routeName,
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class Downloader {
   Future downloadFile(String url, String filename) async {
@@ -12,8 +13,18 @@ class Downloader {
         if (value == PermissionStatus.denied) return;
       });
     }
-    await dio.download(url, '$dir/$filename.zip');
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(Duration(seconds: 7));
+      print(5);
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        print('connected');
+        await dio.download(url, '$dir/$filename.zip');
 
-    print('done!');
+        print('done!');
+      }
+    } catch (e) {
+      throw e;
+    }
   }
 }

@@ -1,11 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../modals/networking.dart';
 import '../widgets/subtitle_item_widget.dart';
 
-enum Languages { Arabic, English }
+enum Languages { Arabic, English, French, Turkish, German, Russian }
 
 class MoviesScreen extends StatefulWidget {
   @override
@@ -19,6 +21,29 @@ class _MoviesScreenState extends State<MoviesScreen> {
   final seasonFocusNode = FocusNode();
   final episodeFocusNode = FocusNode();
 
+  Map<Languages, String> langKey = {
+    Languages.Arabic: 'ara',
+    Languages.English: 'eng',
+    Languages.French: 'fre',
+    Languages.German: 'ger',
+    Languages.Turkish: 'tur',
+    Languages.Russian: 'rus'
+  };
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      SharedPreferences pref = await SharedPreferences.getInstance();
+      language = Languages.values.firstWhere(
+        (element) => element.toString() == pref.get('lang').toString(),
+        orElse: () => Languages.Arabic,
+      );
+      lang = langKey[language];
+      setState(() {});
+    });
+
+    super.initState();
+  }
+
   @override
   void dispose() {
     seasonFocusNode.dispose();
@@ -27,12 +52,12 @@ class _MoviesScreenState extends State<MoviesScreen> {
   }
 
   bool movieMode = true;
-  Languages language = Languages.Arabic;
+  Languages language;
 
   String title = '';
   int season = 0;
   int episode = 0;
-  String lang = 'ara';
+  String lang;
 
   @override
   Widget build(BuildContext context) {
@@ -44,52 +69,40 @@ class _MoviesScreenState extends State<MoviesScreen> {
         actions: [
           PopupMenuButton(
             icon: Icon(Icons.language),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    Icon(Icons.check,
-                        color: language == Languages.Arabic
-                            ? Theme.of(context).primaryColor
-                            : null),
-                    Text('Arabic'),
-                  ],
-                ),
-                value: Languages.Arabic,
-              ),
-              PopupMenuItem(
-                  child: Row(
-                    children: [
-                      Icon(Icons.check,
-                          color: language == Languages.English
-                              ? Theme.of(context).primaryColor
-                              : null),
-                      Text('English'),
-                    ],
+            itemBuilder: (context) => Languages.values
+                .map(
+                  (e) => PopupMenuItem<Languages>(
+                    child: Row(
+                      children: [
+                        if (language == e)
+                          Icon(Icons.check,
+                              color: Theme.of(context).primaryColor),
+                        Text(describeEnum(e))
+                      ],
+                    ),
+                    value: e,
                   ),
-                  value: Languages.English)
-            ],
-            onSelected: (value) {
+                )
+                .toList(),
+            onSelected: (value) async {
               setState(() {
                 language = value;
-                if (value == Languages.Arabic) {
-                  lang = 'ara';
-                } else {
-                  lang = 'eng';
-                }
+                lang = langKey[value];
               });
+              SharedPreferences pref = await SharedPreferences.getInstance();
+              pref.setString('lang', language.toString());
             },
           ),
           PopupMenuButton(
             icon: Icon(Icons.more_vert),
-            itemBuilder: (_) => [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 child:
                     Text(movieMode ? 'Subs for TV Shows' : 'Subs for Movies'),
                 value: 0,
               ),
             ],
-            onSelected: (value) {
+            onSelected: (value) async {
               setState(() {
                 movieMode = !movieMode;
                 formKey.currentState.reset();
@@ -101,198 +114,245 @@ class _MoviesScreenState extends State<MoviesScreen> {
       ),
       body: Form(
         key: formKey,
-        child: Container(
-          width: double.infinity,
-          child: Card(
-            margin: const EdgeInsets.all(15),
-            color: Colors.grey[200],
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                        movieMode
-                            ? 'Enter your movie\'s name:'
-                            : 'Enter your TV Show\'s details:',
-                        style: Theme.of(context).textTheme.headline6),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                    child: TextFormField(
-                      textInputAction: movieMode
-                          ? TextInputAction.done
-                          : TextInputAction.next,
-                      onFieldSubmitted: movieMode
-                          ? (_) {
-                              FocusScope.of(context).unfocus();
-                            }
-                          : (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(seasonFocusNode);
-                            },
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'Please Enter the Title';
-                        } else
-                          return null;
-                      },
-                      decoration: InputDecoration(
-                          labelText:
-                              movieMode ? 'Movie\'s name' : 'TV Show\'s name'),
-                      onSaved: (value) {
-                        title = value;
-                      },
+        child: Stack(children: [
+          SingleChildScrollView(
+            child: Container(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height / 6),
+                  child: Hero(
+                    tag: 'logo',
+                    child: Container(
+                      child: Image(
+                        image: AssetImage('assets/logo.png'),
+                      ),
                     ),
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  if (!movieMode)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 15),
-                      child: Row(
-                        children: [
-                          Expanded(
-                              child: TextFormField(
-                            textInputAction: TextInputAction.next,
-                            onFieldSubmitted: (_) {
-                              FocusScope.of(context)
-                                  .requestFocus(episodeFocusNode);
-                            },
-                            focusNode: seasonFocusNode,
-                            keyboardType: TextInputType.number,
+                ),
+              ),
+              height: (MediaQuery.of(context).size.height - 100),
+            ),
+          ),
+          Opacity(
+            opacity: 0.8,
+            child: Card(
+                margin: const EdgeInsets.all(15),
+                color: Colors.grey[200],
+                child: Container(
+                  height: (MediaQuery.of(context).size.height - 110),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                              movieMode
+                                  ? 'Enter your movie\'s name:'
+                                  : 'Enter your TV Show\'s details:',
+                              style: Theme.of(context).textTheme.headline6),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 15),
+                          child: TextFormField(
+                            textInputAction: movieMode
+                                ? TextInputAction.done
+                                : TextInputAction.next,
+                            onFieldSubmitted: movieMode
+                                ? (_) {
+                                    FocusScope.of(context).unfocus();
+                                  }
+                                : (_) {
+                                    FocusScope.of(context)
+                                        .requestFocus(seasonFocusNode);
+                                  },
                             validator: (value) {
-                              if (value.isEmpty)
-                                return 'Please Enter the Season Number';
-                              else if (int.tryParse(value) == null)
-                                return 'Please enter a valid number';
-                              else
+                              if (value.isEmpty) {
+                                return 'Please Enter the Title';
+                              } else
                                 return null;
                             },
+                            decoration: InputDecoration(
+                                labelText: movieMode
+                                    ? 'Movie\'s name'
+                                    : 'TV Show\'s name'),
                             onSaved: (value) {
-                              season = int.parse(value);
+                              title = value;
                             },
-                            decoration:
-                                InputDecoration(labelText: 'Season number'),
-                          )),
-                          SizedBox(
-                            width: 60,
                           ),
-                          Expanded(
-                              child: TextFormField(
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        if (!movieMode)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 15),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: TextFormField(
+                                  textInputAction: TextInputAction.next,
+                                  onFieldSubmitted: (_) {
+                                    FocusScope.of(context)
+                                        .requestFocus(episodeFocusNode);
+                                  },
+                                  focusNode: seasonFocusNode,
                                   keyboardType: TextInputType.number,
-                                  focusNode: episodeFocusNode,
                                   validator: (value) {
                                     if (value.isEmpty)
-                                      return 'Please Enter the Episode Number';
+                                      return 'Please Enter the Season Number';
                                     else if (int.tryParse(value) == null)
                                       return 'Please enter a valid number';
                                     else
                                       return null;
                                   },
                                   onSaved: (value) {
-                                    episode = int.parse(value);
+                                    season = int.parse(value);
                                   },
                                   decoration: InputDecoration(
-                                      labelText: 'Episode number')))
-                        ],
-                      ),
-                    ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.teal,
-                    ),
-                    onPressed: () async {
-                      FocusScope.of(context).unfocus();
-                      if (formKey.currentState.validate()) {
-                        formKey.currentState.save();
-                        setState(() {
-                          loading = true;
-                        });
-                        try {
-                          if (movieMode) {
-                            await Provider.of<SubtitleGetter>(context,
-                                    listen: false)
-                                .getMovieSubs(title, lang)
-                                .then((value) {
-                              if (value != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(value)));
-                              }
-                            });
-                          } else {
-                            await Provider.of<SubtitleGetter>(context,
-                                    listen: false)
-                                .getSeriesSubs(title, season.toString(),
-                                    episode.toString(), lang)
-                                .then((value) {
-                              if (value != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(value),
-                                  ),
-                                );
-                              }
-                            });
-                          }
-                          setState(() {
-                            loading = false;
-                          });
-                        } catch (e) {
-                          print(e);
-                        }
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Find Subtitle',
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Container(
-                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 15),
-                    height: 250,
-                    child: loading
-                        ? SpinKitRing(color: Theme.of(context).primaryColor)
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            itemBuilder: (context, i) {
-                              return SubtitleItem(subtitles[i], () {
-                                setState(() {
-                                  loading = true;
-                                });
-                              }, () {
-                                setState(() {
-                                  loading = false;
-                                });
-                                ScaffoldMessenger.of(
-                                        _scaffoldKey.currentContext)
-                                    .showSnackBar(SnackBar(
-                                        content: Text(
-                                            'Subtitle Saved in Downloads!')));
-                              });
-                            },
-                            itemCount: subtitles.length,
+                                      labelText: 'Season number'),
+                                )),
+                                SizedBox(
+                                  width: 60,
+                                ),
+                                Expanded(
+                                    child: TextFormField(
+                                        keyboardType: TextInputType.number,
+                                        focusNode: episodeFocusNode,
+                                        validator: (value) {
+                                          if (value.isEmpty)
+                                            return 'Please Enter the Episode Number';
+                                          else if (int.tryParse(value) == null)
+                                            return 'Please enter a valid number';
+                                          else
+                                            return null;
+                                        },
+                                        onSaved: (value) {
+                                          episode = int.parse(value);
+                                        },
+                                        decoration: InputDecoration(
+                                            labelText: 'Episode number')))
+                              ],
+                            ),
                           ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.teal,
+                          ),
+                          onPressed: () async {
+                            FocusScope.of(context).unfocus();
+                            if (formKey.currentState.validate()) {
+                              formKey.currentState.save();
+                              setState(() {
+                                loading = true;
+                              });
+                              if (movieMode) {
+                                await Provider.of<SubtitleGetter>(context,
+                                        listen: false)
+                                    .getMovieSubs(title, lang)
+                                    .then((value) {
+                                  if (value != null) {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(value)));
+                                  }
+                                });
+                              } else {
+                                await Provider.of<SubtitleGetter>(context,
+                                        listen: false)
+                                    .getSeriesSubs(title, season.toString(),
+                                        episode.toString(), lang)
+                                    .then((value) {
+                                  if (value != null) {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(value),
+                                      ),
+                                    );
+                                  }
+                                });
+                              }
+                              setState(() {
+                                loading = false;
+                              });
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              'Find Subtitle',
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Container(
+                          margin:
+                              EdgeInsets.symmetric(vertical: 4, horizontal: 15),
+                          child: loading
+                              ? Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 20, bottom: 40),
+                                  child: SpinKitRing(
+                                      color: Theme.of(context).primaryColor),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, i) {
+                                    return SubtitleItem(subtitles[i], () {
+                                      setState(() {
+                                        loading = true;
+                                      });
+                                    }, (bool done) {
+                                      setState(() {
+                                        loading = false;
+                                      });
+                                      if (done) {
+                                        ScaffoldMessenger.of(
+                                                _scaffoldKey.currentContext)
+                                            .hideCurrentSnackBar();
+                                        ScaffoldMessenger.of(
+                                                _scaffoldKey.currentContext)
+                                            .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    'Subtitle Saved in Downloads!')));
+                                      }
+                                    }, (String message) {
+                                      ScaffoldMessenger.of(
+                                              _scaffoldKey.currentContext)
+                                          .hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(
+                                              _scaffoldKey.currentContext)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(message),
+                                        ),
+                                      );
+                                    });
+                                  },
+                                  itemCount: subtitles.length,
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
+                )),
           ),
-        ),
+        ]),
       ),
     );
   }
