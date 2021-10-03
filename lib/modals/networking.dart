@@ -17,7 +17,7 @@ class SubtitleGetter with ChangeNotifier {
       HttpClientRequest request = await client.getUrl(Uri.parse(
           'https://rest.opensubtitles.org/search/imdbid-$id/sublanguageid-$lang'));
 
-      HttpClientResponse response = await request.close();
+    final response = await request.close();
       var result = new StringBuffer();
       await for (var contents in response.transform(Utf8Decoder())) {
         result.write(contents);

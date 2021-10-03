@@ -116,24 +116,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
         key: formKey,
         child: Stack(children: [
           SingleChildScrollView(
-            child: Container(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).size.height / 6),
-                  child: Hero(
-                    tag: 'logo',
-                    child: Container(
-                      child: Image(
-                        image: AssetImage('assets/logo.png'),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              height: (MediaQuery.of(context).size.height - 100),
-            ),
+            child: LogoImage(),
           ),
           Opacity(
             opacity: 0.8,
@@ -145,9 +128,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: 20,
-                        ),
+                        SizedBox(height: 20),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
@@ -218,9 +199,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
                                   decoration: InputDecoration(
                                       labelText: 'Season number'),
                                 )),
-                                SizedBox(
-                                  width: 60,
-                                ),
+                                SizedBox(width: 60),
                                 Expanded(
                                     child: TextFormField(
                                         keyboardType: TextInputType.number,
@@ -241,13 +220,9 @@ class _MoviesScreenState extends State<MoviesScreen> {
                               ],
                             ),
                           ),
-                        SizedBox(
-                          height: 20,
-                        ),
+                        SizedBox(height: 20),
                         ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.teal,
-                          ),
+                          style: ElevatedButton.styleFrom(primary: Colors.teal),
                           onPressed: () async {
                             FocusScope.of(context).unfocus();
                             if (formKey.currentState.validate()) {
@@ -264,7 +239,10 @@ class _MoviesScreenState extends State<MoviesScreen> {
                                     ScaffoldMessenger.of(context)
                                         .hideCurrentSnackBar();
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(value)));
+                                      SnackBar(
+                                        content: Text(value),
+                                      ),
+                                    );
                                   }
                                 });
                               } else {
@@ -354,6 +332,34 @@ class _MoviesScreenState extends State<MoviesScreen> {
           ),
         ]),
       ),
+    );
+  }
+}
+
+class LogoImage extends StatelessWidget {
+  const LogoImage({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 6),
+          child: Hero(
+            tag: 'logo',
+            child: Container(
+              child: Image(
+                image: AssetImage('assets/logo.png'),
+              ),
+            ),
+          ),
+        ),
+      ),
+      height: (MediaQuery.of(context).size.height - 100),
     );
   }
 }
